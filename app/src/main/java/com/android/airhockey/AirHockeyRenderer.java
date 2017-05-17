@@ -3,6 +3,7 @@ package com.android.airhockey;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 
+import com.android.airhockey.util.MatrixHelper;
 import com.android.airhockey.util.ShaderHelper;
 import com.android.airhockey.util.TextResourceReader;
 
@@ -31,7 +32,11 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
 import static android.opengl.GLES20.glViewport;
+import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.orthoM;
+import static android.opengl.Matrix.rotateM;
+import static android.opengl.Matrix.setIdentityM;
+import static android.opengl.Matrix.translateM;
 
 /**
  * Created by pengfu on 13/05/2017.
@@ -42,6 +47,7 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer {
 
     private static final String U_MATRIX = "u_Matrix" ;
     private final float [] projectionMatrix = new float[16] ;
+    private final float [] modelMatrix      = new float[16] ;
 
     private static final int POSITION_COMPONENT_COUNT = 2 ;
     private static final int COLOR_COMPONENT_COUNT = 3 ;
@@ -117,12 +123,14 @@ public class AirHockeyRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         glViewport(0,0,width ,height);
 
-        final float aspectRatio = width > height? width/(height*1f): height/(width*1.f) ;
-        if(width> height){
-           orthoM(projectionMatrix ,0 ,-aspectRatio ,aspectRatio ,-1f ,1f ,-1f ,1f) ;
-        }else{
-            orthoM(projectionMatrix ,0 ,-1f ,1f ,-aspectRatio ,aspectRatio ,-1f ,1f);
-        }
+        MatrixHelper.perspectiveM(projectionMatrix ,45 ,width/(height*1f) ,1f ,10f);
+        setIdentityM(modelMatrix ,0);
+        translateM(modelMatrix ,0 ,0 ,0 ,-2.5f);
+        rotateM(modelMatrix ,0 ,-50f ,1 ,0 ,0);
+
+        final float[] temp = new float[16] ;
+        multiplyMM(temp ,0 ,projectionMatrix ,0 ,modelMatrix ,0);
+        System.arraycopy(temp ,0 ,projectionMatrix ,0 ,temp.length);
     }
 
     @Override
