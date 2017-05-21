@@ -13,6 +13,7 @@ import static android.opengl.GLES20.glUseProgram;
 
 public class ShaderProgram {
 
+    protected static final String U_COLOR = "u_Color" ;
 
     // uniform constants
 
