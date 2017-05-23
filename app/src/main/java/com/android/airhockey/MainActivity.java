@@ -7,6 +7,8 @@ import android.opengl.GLSurfaceView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -18,6 +20,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean rendererSet = false ;
 
     private GLSurfaceView glSurfaceView ;
+
+    final AirHockeyRenderer airHockeyRenderer = new AirHockeyRenderer(this) ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,7 +33,35 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG ,"isSupportEs2:"+isSupportEs2) ;
         if(isSupportEs2){
             glSurfaceView.setEGLContextClientVersion(2);
-            glSurfaceView.setRenderer(new AirHockeyRenderer(this));
+            glSurfaceView.setRenderer(airHockeyRenderer);
+
+            glSurfaceView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if(event != null){
+                        final float normalizedX = (event.getX() / v.getWidth()) * 2 - 1 ;
+                        final float normalizedY = -( (event.getY() / (float) v.getHeight()) * 2 - 1 ) ;
+                        if(event.getAction() == MotionEvent.ACTION_DOWN){
+                            glSurfaceView.queueEvent(new Runnable() {
+                                @Override
+                                public void run() {
+                                    airHockeyRenderer.handleTouchPress(normalizedX , normalizedY) ;
+                                }
+                            });
+                        }else if(event.getAction() == MotionEvent.ACTION_MOVE){
+                            glSurfaceView.queueEvent(new Runnable() {
+                                @Override
+                                public void run() {
+                                    airHockeyRenderer.handleTouchDrag(normalizedX ,normalizedY) ;
+                                }
+                            });
+                        }
+                        return true ;
+                    }else{
+                        return false ;
+                    }
+                }
+            });
             setContentView(glSurfaceView);
             rendererSet = true ;
 
